@@ -2,6 +2,19 @@ plugins {
     alias(libs.plugins.android.application)
 }
 
+fun getGitCommitCount(): Int {
+    return try {
+        val stdout = java.io.ByteArrayOutputStream()
+        project.exec {
+            commandLine("git", "rev-list", "--count", "HEAD")
+            standardOutput = stdout
+        }
+        stdout.toString().trim().toIntOrNull() ?: 1
+    } catch (_: Exception) {
+        1
+    }
+}
+
 android {
     namespace = "top.nkbe.ssaid"
     compileSdk = 37
@@ -10,8 +23,8 @@ android {
         applicationId = "top.nkbe.ssaid"
         minSdk = 29
         targetSdk = 37
-        versionCode = 1
-        versionName = "1.0"
+        versionCode = getGitCommitCount()
+        versionName = "1.1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
