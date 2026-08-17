@@ -62,4 +62,8 @@
     <string name="no_matching_apps">No matching apps found</string>
     <string name="status_unauthorized">Root Unauthorized</string>
     <string name="status_authorized">Root Connected</string>
+    <string name="filter_all">All</string>
+    <string name="filter_user">User Apps</string>
+    <string name="filter_system">System Apps</string>
+    <string name="filter_modified">Modified</string>
 </resources>

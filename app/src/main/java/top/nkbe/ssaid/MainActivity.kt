@@ -7,8 +7,10 @@ import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
 import android.content.Intent
+import android.content.pm.ApplicationInfo
 import android.content.pm.PackageManager
 import android.content.res.ColorStateList
+import android.graphics.Typeface
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
@@ -38,6 +40,13 @@ import java.util.concurrent.atomic.AtomicBoolean
 
 class MainActivity : Activity() {
 
+    private enum class AppFilter {
+        ALL,
+        USER,
+        SYSTEM,
+        MODIFIED
+    }
+
     private lateinit var rootRepository: SsaidRootRepository
     private lateinit var historyStore: SsaidHistoryStore
     private val backgroundExecutor = Executors.newSingleThreadExecutor()
@@ -45,6 +54,7 @@ class MainActivity : Activity() {
     private var activeSuExecutable: String? = null
     private var loadedEntries: List<SsaidEntry> = emptyList()
     private var currentFilterQuery: String = ""
+    private var currentFilterType: AppFilter = AppFilter.ALL
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -97,7 +107,65 @@ class MainActivity : Activity() {
         clearButton.setOnClickListener {
             searchInput.setText("")
         }
+
+        findViewById<TextView>(R.id.chipFilterAll).setOnClickListener {
+            setAppFilter(AppFilter.ALL)
+        }
+        findViewById<TextView>(R.id.chipFilterUser).setOnClickListener {
+            setAppFilter(AppFilter.USER)
+        }
+        findViewById<TextView>(R.id.chipFilterSystem).setOnClickListener {
+            setAppFilter(AppFilter.SYSTEM)
+        }
+        findViewById<TextView>(R.id.chipFilterModified).setOnClickListener {
+            setAppFilter(AppFilter.MODIFIED)
+        }
     }
+
+    private fun setAppFilter(filter: AppFilter) {
+        if (currentFilterType == filter) return
+        currentFilterType = filter
+        updateFilterChipsUi()
+        applyFilterAndRender()
+    }
+
+    private fun updateFilterChipsUi() {
+        val chipAll = findViewById<TextView>(R.id.chipFilterAll)
+        val chipUser = findViewById<TextView>(R.id.chipFilterUser)
+        val chipSystem = findViewById<TextView>(R.id.chipFilterSystem)
+        val chipModified = findViewById<TextView>(R.id.chipFilterModified)
+
+        val chips = listOf(
+            AppFilter.ALL to chipAll,
+            AppFilter.USER to chipUser,
+            AppFilter.SYSTEM to chipSystem,
+            AppFilter.MODIFIED to chipModified
+        )
+
+        for ((filterType, chipView) in chips) {
+            val isSelected = filterType == currentFilterType
+            chipView.setBackgroundResource(
+                if (isSelected) R.drawable.bg_filter_chip_selected
+                else R.drawable.bg_filter_chip_unselected
+            )
+            chipView.setTextColor(
+                if (isSelected) getColor(R.color.primary)
+                else getColor(R.color.on_surface_variant)
+            )
+            chipView.setTypeface(null, if (isSelected) Typeface.BOLD else Typeface.NORMAL)
+        }
+    }
+
+    private fun isSystemApp(packageName: String): Boolean = try {
+        val appInfo = packageManager.getApplicationInfo(packageName, PackageManager.GET_META_DATA)
+        (appInfo.flags and ApplicationInfo.FLAG_SYSTEM) != 0 ||
+            (appInfo.flags and ApplicationInfo.FLAG_UPDATED_SYSTEM_APP) != 0
+    } catch (_: PackageManager.NameNotFoundException) {
+        false
+    }
+
+    private fun hasHistory(packageName: String): Boolean =
+        historyStore.records(packageName).isNotEmpty()
 
     private fun openGithub() {
         val intent = Intent(Intent.ACTION_VIEW, Uri.parse(getString(R.string.github_url)))
@@ -119,6 +187,7 @@ class MainActivity : Activity() {
             findViewById<View>(R.id.ssaidEmptyState).visibility = View.VISIBLE
             findViewById<View>(R.id.ssaidListContainer).visibility = View.GONE
             findViewById<View>(R.id.searchContainer).visibility = View.GONE
+            findViewById<View>(R.id.filterChipsScroll).visibility = View.GONE
             findViewById<View>(R.id.ssaidCountBadge).visibility = View.GONE
         }
     }
@@ -279,7 +348,10 @@ class MainActivity : Activity() {
         )
         findViewById<View>(R.id.searchContainer).visibility =
             if (loadedEntries.isNotEmpty()) View.VISIBLE else View.GONE
+        findViewById<View>(R.id.filterChipsScroll).visibility =
+            if (loadedEntries.isNotEmpty()) View.VISIBLE else View.GONE
         findViewById<Button>(R.id.manageSsaidButton).setText(R.string.refresh_ssaid)
+        updateFilterChipsUi()
         applyFilterAndRender()
     }
 
@@ -289,19 +361,24 @@ class MainActivity : Activity() {
         val countBadge = findViewById<TextView>(R.id.ssaidCountBadge)
         container.removeAllViews()
 
-        val filtered = if (currentFilterQuery.isEmpty()) {
-            loadedEntries
-        } else {
-            loadedEntries.filter { entry ->
+        val filtered = loadedEntries.filter { entry ->
+            val matchesFilter = when (currentFilterType) {
+                AppFilter.ALL -> true
+                AppFilter.USER -> !isSystemApp(entry.packageName)
+                AppFilter.SYSTEM -> isSystemApp(entry.packageName)
+                AppFilter.MODIFIED -> hasHistory(entry.packageName)
+            }
+            val matchesQuery = if (currentFilterQuery.isEmpty()) true else {
                 applicationLabel(entry.packageName).contains(currentFilterQuery, ignoreCase = true) ||
                     entry.packageName.contains(currentFilterQuery, ignoreCase = true) ||
                     entry.value.contains(currentFilterQuery, ignoreCase = true)
             }
+            matchesFilter && matchesQuery
         }
 
         if (loadedEntries.isNotEmpty()) {
             countBadge.visibility = View.VISIBLE
-            countBadge.text = getString(R.string.apps_count, loadedEntries.size)
+            countBadge.text = getString(R.string.apps_count, filtered.size)
             findViewById<TextView>(R.id.ssaidRootStatus).text = getString(R.string.status_authorized)
         }
 
@@ -335,7 +412,7 @@ class MainActivity : Activity() {
         val hasFiltered = filtered.isNotEmpty()
         if (!hasLoaded) {
             emptyState.visibility = View.VISIBLE
-            emptyState.setText(R.string.ssaid_no_entries)
+            emptyState.setText(R.string.ssaid_list_empty)
             container.visibility = View.GONE
         } else if (!hasFiltered) {
             emptyState.visibility = View.VISIBLE

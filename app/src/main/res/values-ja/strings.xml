@@ -62,4 +62,8 @@
     <string name="no_matching_apps">一致するアプリが見つかりません</string>
     <string name="status_unauthorized">Root 未許可</string>
     <string name="status_authorized">Root 接続済み</string>
+    <string name="filter_all">すべて</string>
+    <string name="filter_user">ユーザーアプリ</string>
+    <string name="filter_system">システムアプリ</string>
+    <string name="filter_modified">変更履歴あり</string>
 </resources>

@@ -68,4 +68,8 @@
     <string name="no_matching_apps">未找到符合的應用程式</string>
     <string name="status_unauthorized">Root 未授權</string>
     <string name="status_authorized">Root 已就緒</string>
+    <string name="filter_all">全部</string>
+    <string name="filter_user">用戶應用</string>
+    <string name="filter_system">系統應用</string>
+    <string name="filter_modified">已修改</string>
 </resources>
