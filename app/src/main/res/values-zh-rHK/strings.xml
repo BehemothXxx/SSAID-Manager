@@ -63,4 +63,9 @@
     <string name="unavailable">無法使用</string>
     <string name="nothing_to_copy">目前沒有可複製的內容</string>
     <string name="copied">已複製 %1$s</string>
+    <string name="search_hint">搜尋應用程式或套件名稱…</string>
+    <string name="apps_count">%1$d 個應用程式</string>
+    <string name="no_matching_apps">未找到符合的應用程式</string>
+    <string name="status_unauthorized">Root 未授權</string>
+    <string name="status_authorized">Root 已就緒</string>
 </resources>

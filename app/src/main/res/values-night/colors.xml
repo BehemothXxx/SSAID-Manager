@@ -1,16 +1,46 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="surface">#FF101412</color>
-    <color name="panel_surface">#FF1A211E</color>
-    <color name="on_surface">#FFE2E8E5</color>
-    <color name="on_surface_variant">#FFBBC6C1</color>
-    <color name="primary">#FF80D5C1</color>
-    <color name="on_primary">#FF063A30</color>
-    <color name="outline">#FF52605A</color>
-    <color name="button_surface">#FF203D36</color>
-    <color name="on_button_surface">#FFB7E8DB</color>
-    <color name="android_id_card">#FF4B421B</color>
-    <color name="on_android_id_card">#FFFFECA7</color>
-    <color name="ssaid_item_card">#FF282719</color>
-    <color name="ssaid_item_outline">#FF6A6030</color>
+    <!-- Background & Surfaces (Dark: Catppuccin Mocha / Deep Slate) -->
+    <color name="surface">#11111B</color>
+    <color name="panel_surface">#1E1E2E</color>
+    <color name="surface_container">#24273A</color>
+    <color name="outline">#313244</color>
+
+    <!-- Content Colors -->
+    <color name="on_surface">#CDD6F4</color>
+    <color name="on_surface_variant">#A6ADC8</color>
+    <color name="on_surface_muted">#6C7086</color>
+
+    <!-- Brand / Primary Accent -->
+    <color name="primary">#89B4FA</color>
+    <color name="on_primary">#11111B</color>
+    <color name="primary_container">#283556</color>
+    <color name="on_primary_container">#B4BEFE</color>
+
+    <!-- Buttons -->
+    <color name="button_surface">#282A3E</color>
+    <color name="on_button_surface">#CDD6F4</color>
+    <color name="button_chip_bg">#252C48</color>
+    <color name="button_chip_text">#89B4FA</color>
+
+    <!-- Specialized Cards -->
+    <color name="android_id_card">#1E1E2E</color>
+    <color name="on_android_id_card">#CDD6F4</color>
+    <color name="ssaid_item_card">#1E1E2E</color>
+    <color name="ssaid_item_outline">#313244</color>
+    <color name="code_box_bg">#181825</color>
+    <color name="code_box_stroke">#313244</color>
+
+    <!-- Status Dots & Badges -->
+    <color name="status_active">#A6E3A1</color>
+    <color name="status_info">#89B4FA</color>
+    <color name="status_warning">#FAB387</color>
+    <color name="status_error">#F38BA8</color>
+    <color name="status_disabled">#585B70</color>
+
+    <!-- Dialogs & Inputs -->
+    <color name="dialog_input_bg">#181825</color>
+    <color name="dialog_input_stroke">#45475A</color>
+    <color name="icon_background">#89B4FA</color>
+    <color name="icon_foreground">#11111B</color>
 </resources>

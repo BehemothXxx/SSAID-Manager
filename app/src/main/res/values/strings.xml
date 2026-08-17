@@ -57,4 +57,9 @@
     <string name="unavailable">Unavailable</string>
     <string name="nothing_to_copy">Nothing to copy</string>
     <string name="copied">Copied %1$s</string>
+    <string name="search_hint">Search app or package…</string>
+    <string name="apps_count">%1$d apps</string>
+    <string name="no_matching_apps">No matching apps found</string>
+    <string name="status_unauthorized">Root Unauthorized</string>
+    <string name="status_authorized">Root Connected</string>
 </resources>

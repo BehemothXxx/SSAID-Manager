@@ -5,7 +5,6 @@
     android:layout_height="wrap_content"
     android:layout_marginTop="8dp"
     android:background="@drawable/bg_ssaid_item"
-    android:elevation="1dp"
     android:orientation="vertical"
     android:padding="12dp">
 
@@ -16,29 +15,41 @@
         android:ellipsize="end"
         android:maxLines="1"
         android:textColor="@color/on_surface"
-        android:textSize="16sp"
-        android:textStyle="bold" />
+        android:textSize="15sp"
+        android:textStyle="bold"
+        tools:text="Settings Provider" />
 
     <TextView
         android:id="@+id/ssaidPackageName"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="2dp"
+        android:layout_marginTop="1dp"
         android:ellipsize="middle"
         android:fontFamily="monospace"
         android:maxLines="1"
         android:textColor="@color/on_surface_variant"
-        android:textSize="12sp" />
+        android:textSize="11sp"
+        tools:text="com.android.providers.settings" />
 
-    <TextView
-        android:id="@+id/ssaidEntryValue"
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="8dp"
-        android:fontFamily="monospace"
-        android:textColor="@color/on_surface"
-        android:textIsSelectable="true"
-        android:textSize="17sp" />
+        android:background="@drawable/bg_code_box"
+        android:paddingHorizontal="10dp"
+        android:paddingVertical="6dp">
+
+        <TextView
+            android:id="@+id/ssaidEntryValue"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:fontFamily="monospace"
+            android:textColor="@color/primary"
+            android:textIsSelectable="true"
+            android:textSize="14sp"
+            android:textStyle="bold"
+            tools:text="8f9a2b3c4d5e6f70" />
+    </LinearLayout>
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -50,48 +61,48 @@
         <Button
             android:id="@+id/editSsaidButton"
             android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_marginEnd="4dp"
+            android:layout_height="36dp"
+            android:layout_marginEnd="6dp"
             android:layout_weight="1"
-            android:backgroundTint="@color/button_surface"
-            android:minHeight="44dp"
+            android:background="@drawable/bg_chip_button"
+            android:minHeight="0dp"
             android:minWidth="0dp"
-            android:paddingStart="2dp"
-            android:paddingEnd="2dp"
+            android:padding="0dp"
             android:text="@string/edit_ssaid"
             android:textAllCaps="false"
-            android:textColor="@color/on_button_surface"
-            android:textSize="13sp" />
+            android:textColor="@color/primary"
+            android:textSize="12sp"
+            android:textStyle="bold" />
 
         <Button
             android:id="@+id/randomSsaidButton"
             android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_marginEnd="4dp"
+            android:layout_height="36dp"
+            android:layout_marginEnd="6dp"
             android:layout_weight="1"
-            android:backgroundTint="@color/button_surface"
-            android:minHeight="44dp"
+            android:background="@drawable/bg_secondary_button"
+            android:minHeight="0dp"
             android:minWidth="0dp"
-            android:paddingStart="2dp"
-            android:paddingEnd="2dp"
+            android:padding="0dp"
             android:text="@string/random_ssaid"
             android:textAllCaps="false"
             android:textColor="@color/on_button_surface"
-            android:textSize="13sp" />
+            android:textSize="12sp"
+            android:textStyle="bold" />
 
         <Button
             android:id="@+id/historySsaidButton"
             android:layout_width="0dp"
-            android:layout_height="wrap_content"
+            android:layout_height="36dp"
             android:layout_weight="1"
-            android:backgroundTint="@color/button_surface"
-            android:minHeight="44dp"
+            android:background="@drawable/bg_secondary_button"
+            android:minHeight="0dp"
             android:minWidth="0dp"
-            android:paddingStart="2dp"
-            android:paddingEnd="2dp"
+            android:padding="0dp"
             android:text="@string/history"
             android:textAllCaps="false"
             android:textColor="@color/on_button_surface"
-            android:textSize="13sp" />
+            android:textSize="12sp"
+            android:textStyle="bold" />
     </LinearLayout>
 </LinearLayout>

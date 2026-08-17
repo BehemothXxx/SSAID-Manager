@@ -63,4 +63,9 @@
     <string name="unavailable">不可用</string>
     <string name="nothing_to_copy">当前没有可复制的内容</string>
     <string name="copied">已复制 %1$s</string>
+    <string name="search_hint">搜索应用或包名…</string>
+    <string name="apps_count">%1$d 个应用</string>
+    <string name="no_matching_apps">未找到匹配的应用</string>
+    <string name="status_unauthorized">Root 未授权</string>
+    <string name="status_authorized">Root 已就绪</string>
 </resources>

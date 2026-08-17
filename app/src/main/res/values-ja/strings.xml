@@ -57,4 +57,9 @@
     <string name="unavailable">利用不可</string>
     <string name="nothing_to_copy">コピーできる内容がありません</string>
     <string name="copied">%1$s をコピーしました</string>
+    <string name="search_hint">アプリ名またはパッケージ名を検索…</string>
+    <string name="apps_count">%1$d 個のアプリ</string>
+    <string name="no_matching_apps">一致するアプリが見つかりません</string>
+    <string name="status_unauthorized">Root 未許可</string>
+    <string name="status_authorized">Root 接続済み</string>
 </resources>

@@ -8,18 +8,23 @@ import android.content.ClipboardManager
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.content.res.ColorStateList
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
+import android.text.Editable
 import android.text.InputType
+import android.text.TextWatcher
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.view.WindowInsets
 import android.widget.Button
 import android.widget.EditText
+import android.widget.FrameLayout
 import android.widget.ImageButton
+import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.ScrollView
 import android.widget.TextView
@@ -27,9 +32,9 @@ import android.widget.Toast
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import java.util.UUID
 import java.util.concurrent.Executors
 import java.util.concurrent.atomic.AtomicBoolean
-import java.util.UUID
 
 class MainActivity : Activity() {
 
@@ -38,6 +43,8 @@ class MainActivity : Activity() {
     private val backgroundExecutor = Executors.newSingleThreadExecutor()
     private val operationRunning = AtomicBoolean(false)
     private var activeSuExecutable: String? = null
+    private var loadedEntries: List<SsaidEntry> = emptyList()
+    private var currentFilterQuery: String = ""
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -47,7 +54,6 @@ class MainActivity : Activity() {
         historyStore = SsaidHistoryStore(this)
 
         applyWindowInsets()
-
         bindActions()
         loadBasicInformation()
     }
@@ -62,10 +68,10 @@ class MainActivity : Activity() {
             loadBasicInformation()
             activeSuExecutable?.let { su -> loadSsaidEntries(su, showLoading = false) }
         }
-        findViewById<ImageButton>(R.id.copyCurrentSsaidButton).setOnClickListener {
+        findViewById<TextView>(R.id.copyCurrentSsaidButton).setOnClickListener {
             copyIdentifier(R.string.ssaid_current_label, R.id.currentSsaidValue)
         }
-        findViewById<ImageButton>(R.id.copyDeviceInfoButton).setOnClickListener {
+        findViewById<TextView>(R.id.copyDeviceInfoButton).setOnClickListener {
             copyIdentifier(R.string.device_info_label, R.id.deviceInfoValue)
         }
         findViewById<Button>(R.id.manageSsaidButton).setOnClickListener {
@@ -75,6 +81,21 @@ class MainActivity : Activity() {
         }
         findViewById<TextView>(R.id.githubLink).setOnClickListener {
             openGithub()
+        }
+
+        val searchInput = findViewById<EditText>(R.id.searchEditText)
+        val clearButton = findViewById<ImageView>(R.id.clearSearchButton)
+        searchInput.addTextChangedListener(object : TextWatcher {
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
+                currentFilterQuery = s?.toString()?.trim().orEmpty()
+                clearButton.visibility = if (currentFilterQuery.isNotEmpty()) View.VISIBLE else View.GONE
+                applyFilterAndRender()
+            }
+            override fun afterTextChanged(s: Editable?) {}
+        })
+        clearButton.setOnClickListener {
+            searchInput.setText("")
         }
     }
 
@@ -92,10 +113,13 @@ class MainActivity : Activity() {
         findViewById<TextView>(R.id.currentSsaidValue).text = currentSsaid()
         findViewById<TextView>(R.id.deviceInfoValue).text = deviceInfo()
         if (activeSuExecutable == null) {
+            updateStatusDot(R.color.status_disabled)
             findViewById<TextView>(R.id.ssaidRootStatus).setText(R.string.ssaid_root_hint)
             findViewById<TextView>(R.id.ssaidEmptyState).setText(R.string.ssaid_list_empty)
             findViewById<View>(R.id.ssaidEmptyState).visibility = View.VISIBLE
             findViewById<View>(R.id.ssaidListContainer).visibility = View.GONE
+            findViewById<View>(R.id.searchContainer).visibility = View.GONE
+            findViewById<View>(R.id.ssaidCountBadge).visibility = View.GONE
         }
     }
 
@@ -107,12 +131,12 @@ class MainActivity : Activity() {
 
     private fun deviceInfo(): String = getString(
         R.string.device_info_format,
-        android.os.Build.MANUFACTURER,
-        android.os.Build.BRAND,
-        android.os.Build.MODEL,
-        android.os.Build.VERSION.RELEASE,
-        android.os.Build.VERSION.SDK_INT,
-        android.os.Build.FINGERPRINT
+        Build.MANUFACTURER,
+        Build.BRAND,
+        Build.MODEL,
+        Build.VERSION.RELEASE,
+        Build.VERSION.SDK_INT,
+        Build.FINGERPRINT
     )
 
     @Suppress("DEPRECATION")
@@ -122,7 +146,7 @@ class MainActivity : Activity() {
         val initialTop = main.paddingTop
         val initialRight = main.paddingRight
         val initialBottom = main.paddingBottom
-        main.setOnApplyWindowInsetsListener { view, insets ->
+        main.setOnApplyWindowInsetsListener { _, insets ->
             val systemBars = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
                 insets.getInsets(WindowInsets.Type.systemBars())
             } else {
@@ -133,7 +157,7 @@ class MainActivity : Activity() {
                     insets.systemWindowInsetBottom
                 )
             }
-            view.setPadding(
+            main.setPadding(
                 initialLeft + systemBars.left,
                 initialTop + systemBars.top,
                 initialRight + systemBars.right,
@@ -145,11 +169,18 @@ class MainActivity : Activity() {
     }
 
     private fun openRootRequestDialog() {
+        val container = FrameLayout(this).apply {
+            val padding = (16 * resources.displayMetrics.density).toInt()
+            setPadding(padding, (8 * resources.displayMetrics.density).toInt(), padding, 0)
+        }
         val input = EditText(this).apply {
             layoutParams = ViewGroup.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT,
                 ViewGroup.LayoutParams.WRAP_CONTENT
             )
+            setBackgroundResource(R.drawable.bg_input)
+            val pad = (12 * resources.displayMetrics.density).toInt()
+            setPadding(pad, pad, pad, pad)
             hint = getString(R.string.su_executable_label)
             val saved = getSharedPreferences(PREFERENCES_NAME, Context.MODE_PRIVATE)
                 .getString(SU_EXECUTABLE_KEY, DEFAULT_SU_EXECUTABLE)
@@ -159,11 +190,12 @@ class MainActivity : Activity() {
             inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_URI
             isSingleLine = true
         }
+        container.addView(input)
 
         val dialog = AlertDialog.Builder(this)
             .setTitle(R.string.ssaid_root_request_title)
             .setMessage(R.string.ssaid_root_request_message)
-            .setView(input)
+            .setView(container)
             .setNegativeButton(R.string.cancel, null)
             .setPositiveButton(R.string.request_root, null)
             .create()
@@ -188,6 +220,7 @@ class MainActivity : Activity() {
 
     private fun requestRoot(suExecutable: String) {
         activeSuExecutable = null
+        updateStatusDot(R.color.status_info)
         setOperationRunning(true, R.string.root_requesting)
         findViewById<TextView>(R.id.ssaidRootStatus).setText(R.string.root_requesting)
         backgroundExecutor.execute {
@@ -196,12 +229,14 @@ class MainActivity : Activity() {
                 runOnUiThread {
                     activeSuExecutable = suExecutable
                     setOperationRunning(false)
-                    renderSsaidEntries(entries)
+                    updateStatusDot(R.color.status_active)
+                    setLoadedEntries(entries)
                     showMessage(getString(R.string.root_granted, entries.size))
                 }
             } catch (error: RootOperationException) {
                 runOnUiThread {
                     setOperationRunning(false)
+                    updateStatusDot(R.color.status_error)
                     findViewById<TextView>(R.id.ssaidRootStatus).text = error.message
                         ?: getString(R.string.root_failed)
                     showMessage(getString(R.string.root_failed))
@@ -212,6 +247,7 @@ class MainActivity : Activity() {
 
     private fun loadSsaidEntries(suExecutable: String, showLoading: Boolean) {
         if (showLoading) {
+            updateStatusDot(R.color.status_info)
             setOperationRunning(true, R.string.ssaid_loading)
             findViewById<TextView>(R.id.ssaidRootStatus).setText(R.string.ssaid_loading)
         }
@@ -221,11 +257,13 @@ class MainActivity : Activity() {
                 runOnUiThread {
                     activeSuExecutable = suExecutable
                     setOperationRunning(false)
-                    renderSsaidEntries(entries)
+                    updateStatusDot(R.color.status_active)
+                    setLoadedEntries(entries)
                 }
             } catch (error: RootOperationException) {
                 runOnUiThread {
                     setOperationRunning(false)
+                    updateStatusDot(R.color.status_error)
                     findViewById<TextView>(R.id.ssaidRootStatus).text = error.message
                         ?: getString(R.string.root_failed)
                     showMessage(getString(R.string.root_failed))
@@ -234,21 +272,53 @@ class MainActivity : Activity() {
         }
     }
 
-    private fun renderSsaidEntries(entries: List<SsaidEntry>) {
-        val container = findViewById<LinearLayout>(R.id.ssaidListContainer)
-        val emptyState = findViewById<TextView>(R.id.ssaidEmptyState)
-        container.removeAllViews()
-
-        val sortedEntries = entries.sortedWith(
+    private fun setLoadedEntries(entries: List<SsaidEntry>) {
+        loadedEntries = entries.sortedWith(
             compareBy<SsaidEntry> { applicationLabel(it.packageName).lowercase(Locale.getDefault()) }
                 .thenBy { it.packageName }
         )
-        sortedEntries.forEach { entry ->
+        findViewById<View>(R.id.searchContainer).visibility =
+            if (loadedEntries.isNotEmpty()) View.VISIBLE else View.GONE
+        findViewById<Button>(R.id.manageSsaidButton).setText(R.string.refresh_ssaid)
+        applyFilterAndRender()
+    }
+
+    private fun applyFilterAndRender() {
+        val container = findViewById<LinearLayout>(R.id.ssaidListContainer)
+        val emptyState = findViewById<TextView>(R.id.ssaidEmptyState)
+        val countBadge = findViewById<TextView>(R.id.ssaidCountBadge)
+        container.removeAllViews()
+
+        val filtered = if (currentFilterQuery.isEmpty()) {
+            loadedEntries
+        } else {
+            loadedEntries.filter { entry ->
+                applicationLabel(entry.packageName).contains(currentFilterQuery, ignoreCase = true) ||
+                    entry.packageName.contains(currentFilterQuery, ignoreCase = true) ||
+                    entry.value.contains(currentFilterQuery, ignoreCase = true)
+            }
+        }
+
+        if (loadedEntries.isNotEmpty()) {
+            countBadge.visibility = View.VISIBLE
+            countBadge.text = getString(R.string.apps_count, loadedEntries.size)
+            findViewById<TextView>(R.id.ssaidRootStatus).text = getString(R.string.status_authorized)
+        }
+
+        filtered.forEach { entry ->
             val row = LayoutInflater.from(this)
                 .inflate(R.layout.item_ssaid, container, false)
             row.findViewById<TextView>(R.id.ssaidAppLabel).text = applicationLabel(entry.packageName)
             row.findViewById<TextView>(R.id.ssaidPackageName).text = entry.packageName
-            row.findViewById<TextView>(R.id.ssaidEntryValue).text = entry.value
+            row.findViewById<TextView>(R.id.ssaidEntryValue).apply {
+                text = entry.value
+                setOnClickListener {
+                    getSystemService(ClipboardManager::class.java).setPrimaryClip(
+                        ClipData.newPlainText(entry.packageName, entry.value)
+                    )
+                    showMessage(getString(R.string.copied, entry.packageName))
+                }
+            }
             row.findViewById<Button>(R.id.editSsaidButton).setOnClickListener {
                 openEditDialog(entry)
             }
@@ -261,15 +331,25 @@ class MainActivity : Activity() {
             container.addView(row)
         }
 
-        val hasEntries = sortedEntries.isNotEmpty()
-        emptyState.visibility = if (hasEntries) View.GONE else View.VISIBLE
-        emptyState.setText(if (hasEntries) R.string.ssaid_list_empty else R.string.ssaid_no_entries)
-        container.visibility = if (hasEntries) View.VISIBLE else View.GONE
-        findViewById<TextView>(R.id.ssaidRootStatus).text = getString(
-            R.string.root_granted,
-            sortedEntries.size
-        )
-        findViewById<Button>(R.id.manageSsaidButton).setText(R.string.refresh_ssaid)
+        val hasLoaded = loadedEntries.isNotEmpty()
+        val hasFiltered = filtered.isNotEmpty()
+        if (!hasLoaded) {
+            emptyState.visibility = View.VISIBLE
+            emptyState.setText(R.string.ssaid_no_entries)
+            container.visibility = View.GONE
+        } else if (!hasFiltered) {
+            emptyState.visibility = View.VISIBLE
+            emptyState.setText(R.string.no_matching_apps)
+            container.visibility = View.GONE
+        } else {
+            emptyState.visibility = View.GONE
+            container.visibility = View.VISIBLE
+        }
+    }
+
+    private fun updateStatusDot(colorRes: Int) {
+        val dot = findViewById<View>(R.id.rootStatusDot)
+        dot.backgroundTintList = ColorStateList.valueOf(getColor(colorRes))
     }
 
     private fun applicationLabel(packageName: String): String = try {
@@ -280,22 +360,30 @@ class MainActivity : Activity() {
     }
 
     private fun openEditDialog(entry: SsaidEntry) {
+        val container = FrameLayout(this).apply {
+            val padding = (16 * resources.displayMetrics.density).toInt()
+            setPadding(padding, (8 * resources.displayMetrics.density).toInt(), padding, 0)
+        }
         val input = EditText(this).apply {
             layoutParams = ViewGroup.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT,
                 ViewGroup.LayoutParams.WRAP_CONTENT
             )
+            setBackgroundResource(R.drawable.bg_input)
+            val pad = (12 * resources.displayMetrics.density).toInt()
+            setPadding(pad, pad, pad, pad)
             hint = getString(R.string.new_ssaid_label)
             setText(entry.value)
             setSelection(text?.length ?: 0)
             inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD
             isSingleLine = true
         }
+        container.addView(input)
 
         val dialog = AlertDialog.Builder(this)
             .setTitle(getString(R.string.edit_ssaid_title, applicationLabel(entry.packageName)))
             .setMessage(entry.packageName)
-            .setView(input)
+            .setView(container)
             .setNegativeButton(R.string.cancel, null)
             .setPositiveButton(R.string.save, null)
             .create()
@@ -338,6 +426,7 @@ class MainActivity : Activity() {
             return
         }
 
+        updateStatusDot(R.color.status_info)
         setOperationRunning(true, R.string.ssaid_saving)
         findViewById<TextView>(R.id.ssaidRootStatus).setText(R.string.ssaid_saving)
         backgroundExecutor.execute {
@@ -349,7 +438,8 @@ class MainActivity : Activity() {
                 )
                 runOnUiThread {
                     setOperationRunning(false)
-                    renderSsaidEntries(result.entries)
+                    updateStatusDot(R.color.status_active)
+                    setLoadedEntries(result.entries)
                     findViewById<TextView>(R.id.currentSsaidValue).text = currentSsaid()
                     showMessage(
                         getString(
@@ -363,6 +453,7 @@ class MainActivity : Activity() {
             } catch (error: RootOperationException) {
                 runOnUiThread {
                     setOperationRunning(false)
+                    updateStatusDot(R.color.status_error)
                     findViewById<TextView>(R.id.ssaidRootStatus).text = error.message
                         ?: getString(R.string.ssaid_change_failed)
                     showMessage(getString(R.string.ssaid_change_failed))
@@ -378,9 +469,10 @@ class MainActivity : Activity() {
             return
         }
 
+        val padding = (16 * resources.displayMetrics.density).toInt()
         val historyContainer = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
-            setPadding(0, 0, 0, 0)
+            setPadding(padding, (8 * resources.displayMetrics.density).toInt(), padding, 0)
         }
         val scrollView = ScrollView(this).apply {
             addView(historyContainer)
