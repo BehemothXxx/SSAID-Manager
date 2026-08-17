@@ -83,4 +83,6 @@
     <string name="clear_data_message">確定要清除 %1$s 的所有資料嗎？\n該應用程式將被重設為初始安裝狀態。</string>
     <string name="clear_data_success">已清除 %1$s 的資料</string>
     <string name="clear_data_failed">清除 %1$s 資料失敗</string>
+    <string name="root_permission_denied">未獲得 Root 權限（請在 KernelSU / Magisk / APatch 中允許授權）</string>
+    <string name="custom_su_hint">長按按鈕可自訂 su 路徑</string>
 </resources>

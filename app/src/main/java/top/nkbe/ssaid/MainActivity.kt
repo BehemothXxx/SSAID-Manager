@@ -87,10 +87,14 @@ class MainActivity : Activity() {
         findViewById<TextView>(R.id.copyDeviceInfoButton).setOnClickListener {
             copyIdentifier(R.string.device_info_label, R.id.deviceInfoValue)
         }
-        findViewById<Button>(R.id.manageSsaidButton).setOnClickListener {
-            activeSuExecutable?.let { su ->
-                loadSsaidEntries(su, showLoading = true)
-            } ?: openRootRequestDialog()
+        findViewById<Button>(R.id.manageSsaidButton).apply {
+            setOnClickListener {
+                loadSsaidEntries(getSavedSuExecutable(), showLoading = true)
+            }
+            setOnLongClickListener {
+                openRootCustomPathDialog()
+                true
+            }
         }
         findViewById<TextView>(R.id.githubLink).setOnClickListener {
             openGithub()
@@ -240,7 +244,12 @@ class MainActivity : Activity() {
         main.requestApplyInsets()
     }
 
-    private fun openRootRequestDialog() {
+    private fun getSavedSuExecutable(): String =
+        getSharedPreferences(PREFERENCES_NAME, Context.MODE_PRIVATE)
+            .getString(SU_EXECUTABLE_KEY, DEFAULT_SU_EXECUTABLE)
+            ?: DEFAULT_SU_EXECUTABLE
+
+    private fun openRootCustomPathDialog() {
         val container = FrameLayout(this).apply {
             val padding = (16 * resources.displayMetrics.density).toInt()
             setPadding(padding, (8 * resources.displayMetrics.density).toInt(), padding, 0)
@@ -254,9 +263,7 @@ class MainActivity : Activity() {
             val pad = (12 * resources.displayMetrics.density).toInt()
             setPadding(pad, pad, pad, pad)
             hint = getString(R.string.su_executable_label)
-            val saved = getSharedPreferences(PREFERENCES_NAME, Context.MODE_PRIVATE)
-                .getString(SU_EXECUTABLE_KEY, DEFAULT_SU_EXECUTABLE)
-                ?: DEFAULT_SU_EXECUTABLE
+            val saved = getSavedSuExecutable()
             setText(saved)
             setSelection(text?.length ?: 0)
             inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_URI
@@ -269,52 +276,18 @@ class MainActivity : Activity() {
             .setMessage(R.string.ssaid_root_request_message)
             .setView(container)
             .setNegativeButton(R.string.cancel, null)
-            .setPositiveButton(R.string.request_root, null)
-            .create()
-
-        dialog.setOnShowListener {
-            dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener {
+            .setPositiveButton(R.string.save) { _, _ ->
                 val executable = input.text?.toString()?.trim().orEmpty()
-                if (executable.isEmpty()) {
-                    input.error = getString(R.string.su_executable_required)
-                    return@setOnClickListener
-                }
+                val target = if (executable.isEmpty()) DEFAULT_SU_EXECUTABLE else executable
                 getSharedPreferences(PREFERENCES_NAME, Context.MODE_PRIVATE)
                     .edit()
-                    .putString(SU_EXECUTABLE_KEY, executable)
+                    .putString(SU_EXECUTABLE_KEY, target)
                     .apply()
-                dialog.dismiss()
-                requestRoot(executable)
+                loadSsaidEntries(target, showLoading = true)
             }
-        }
-        dialog.show()
-    }
+            .create()
 
-    private fun requestRoot(suExecutable: String) {
-        activeSuExecutable = null
-        updateStatusDot(R.color.status_info)
-        setOperationRunning(true, R.string.root_requesting)
-        findViewById<TextView>(R.id.ssaidRootStatus).setText(R.string.root_requesting)
-        backgroundExecutor.execute {
-            try {
-                val entries = rootRepository.readEntries(suExecutable)
-                runOnUiThread {
-                    activeSuExecutable = suExecutable
-                    setOperationRunning(false)
-                    updateStatusDot(R.color.status_active)
-                    setLoadedEntries(entries)
-                    showMessage(getString(R.string.root_granted, entries.size))
-                }
-            } catch (error: RootOperationException) {
-                runOnUiThread {
-                    setOperationRunning(false)
-                    updateStatusDot(R.color.status_error)
-                    findViewById<TextView>(R.id.ssaidRootStatus).text = error.message
-                        ?: getString(R.string.root_failed)
-                    showMessage(getString(R.string.root_failed))
-                }
-            }
-        }
+        dialog.show()
     }
 
     private fun loadSsaidEntries(suExecutable: String, showLoading: Boolean) {
@@ -334,11 +307,12 @@ class MainActivity : Activity() {
                 }
             } catch (error: RootOperationException) {
                 runOnUiThread {
+                    activeSuExecutable = null
                     setOperationRunning(false)
                     updateStatusDot(R.color.status_error)
-                    findViewById<TextView>(R.id.ssaidRootStatus).text = error.message
-                        ?: getString(R.string.root_failed)
-                    showMessage(getString(R.string.root_failed))
+                    val errorMsg = error.message ?: getString(R.string.root_permission_denied)
+                    findViewById<TextView>(R.id.ssaidRootStatus).text = errorMsg
+                    showMessage(getString(R.string.root_permission_denied))
                 }
             }
         }
@@ -495,11 +469,7 @@ class MainActivity : Activity() {
     }
 
     private fun submitSsaidChange(entry: SsaidEntry, newValue: String) {
-        val suExecutable = activeSuExecutable
-        if (suExecutable == null) {
-            openRootRequestDialog()
-            return
-        }
+        val suExecutable = activeSuExecutable ?: getSavedSuExecutable()
         if (!isValidSsaid(newValue)) {
             showMessage(getString(R.string.invalid_ssaid))
             return
@@ -630,11 +600,7 @@ class MainActivity : Activity() {
     }
 
     private fun openRebootMenu() {
-        val suExecutable = activeSuExecutable
-        if (suExecutable == null) {
-            openRootRequestDialog()
-            return
-        }
+        val suExecutable = activeSuExecutable ?: getSavedSuExecutable()
         val options = arrayOf(
             getString(R.string.reboot_soft),
             getString(R.string.reboot_full)
@@ -650,7 +616,7 @@ class MainActivity : Activity() {
     }
 
     private fun executeReboot(mode: RebootMode) {
-        val suExecutable = activeSuExecutable ?: return
+        val suExecutable = activeSuExecutable ?: getSavedSuExecutable()
         showMessage(getString(R.string.rebooting))
         backgroundExecutor.execute {
             try {
@@ -664,11 +630,7 @@ class MainActivity : Activity() {
     }
 
     private fun confirmClearData(entry: SsaidEntry) {
-        val suExecutable = activeSuExecutable
-        if (suExecutable == null) {
-            openRootRequestDialog()
-            return
-        }
+        val suExecutable = activeSuExecutable ?: getSavedSuExecutable()
         val appLabel = applicationLabel(entry.packageName)
         AlertDialog.Builder(this)
             .setTitle(getString(R.string.clear_data_title, appLabel))
