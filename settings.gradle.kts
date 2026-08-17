@@ -22,6 +22,6 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "AndroidIDTest"
+rootProject.name = "SSAID"
 include(":app")
  

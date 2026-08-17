@@ -1,4 +1,4 @@
-package `fun`.test.id
+package top.nkbe.ssaid
 
 import org.junit.Test
 

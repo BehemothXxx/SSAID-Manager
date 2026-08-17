@@ -1,4 +1,4 @@
-package `fun`.test.id
+package top.nkbe.ssaid
 
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import org.junit.Assert.assertEquals

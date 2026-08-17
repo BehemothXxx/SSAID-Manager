@@ -3,22 +3,19 @@ plugins {
 }
 
 android {
-    namespace = "fun.test.id"
+    namespace = "top.nkbe.ssaid"
     compileSdk = 37
 
     defaultConfig {
-        applicationId = "fun.test.id"
+        applicationId = "top.nkbe.ssaid"
         minSdk = 29
-        targetSdk = 36
+        targetSdk = 37
         versionCode = 1
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
-    androidResources {
-        localeFilters += listOf("zh-rCN")
-    }
 
     buildTypes {
         release {
