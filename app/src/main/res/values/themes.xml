@@ -9,6 +9,14 @@
         <item name="android:windowLightNavigationBar">true</item>
         <item name="android:fontFamily">sans</item>
         <item name="android:windowNoTitle">true</item>
+        <item name="android:alertDialogTheme">@style/NeoAlertDialogTheme</item>
+    </style>
+
+    <style name="NeoAlertDialogTheme" parent="@android:style/Theme.Material.Light.Dialog.Alert">
+        <item name="android:windowBackground">@drawable/bg_dialog</item>
+        <item name="android:colorAccent">@color/primary</item>
+        <item name="android:textColorPrimary">@color/on_surface</item>
+        <item name="android:textColorSecondary">@color/on_surface_variant</item>
     </style>
 
     <style name="Theme.AndroidIDTest" parent="Base.Theme.AndroidIDTest" />

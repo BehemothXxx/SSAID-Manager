@@ -18,13 +18,13 @@ import android.provider.Settings
 import android.text.Editable
 import android.text.InputType
 import android.text.TextWatcher
+import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.view.WindowInsets
 import android.widget.Button
 import android.widget.EditText
-import android.widget.FrameLayout
 import android.widget.ImageButton
 import android.widget.ImageView
 import android.widget.LinearLayout
@@ -55,6 +55,9 @@ class MainActivity : Activity() {
     private var loadedEntries: List<SsaidEntry> = emptyList()
     private var currentFilterQuery: String = ""
     private var currentFilterType: AppFilter = AppFilter.ALL
+
+    private val Int.dp: Int
+        get() = (this * resources.displayMetrics.density).toInt()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -250,31 +253,41 @@ class MainActivity : Activity() {
             ?: DEFAULT_SU_EXECUTABLE
 
     private fun openRootCustomPathDialog() {
-        val container = FrameLayout(this).apply {
-            val padding = (16 * resources.displayMetrics.density).toInt()
-            setPadding(padding, (8 * resources.displayMetrics.density).toInt(), padding, 0)
+        val layout = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            setPadding(20.dp, 12.dp, 20.dp, 8.dp)
         }
+
+        val hintText = TextView(this).apply {
+            text = getString(R.string.ssaid_root_request_message)
+            setTextColor(getColor(R.color.on_surface_variant))
+            textSize = 13f
+            setPadding(0, 0, 0, 12.dp)
+        }
+        layout.addView(hintText)
+
         val input = EditText(this).apply {
-            layoutParams = ViewGroup.LayoutParams(
+            layoutParams = LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT,
                 ViewGroup.LayoutParams.WRAP_CONTENT
             )
             setBackgroundResource(R.drawable.bg_input)
-            val pad = (12 * resources.displayMetrics.density).toInt()
-            setPadding(pad, pad, pad, pad)
+            setPadding(12.dp, 12.dp, 12.dp, 12.dp)
             hint = getString(R.string.su_executable_label)
             val saved = getSavedSuExecutable()
             setText(saved)
             setSelection(text?.length ?: 0)
+            setTextColor(getColor(R.color.on_surface))
+            setHintTextColor(getColor(R.color.on_surface_muted))
+            textSize = 14f
             inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_URI
             isSingleLine = true
         }
-        container.addView(input)
+        layout.addView(input)
 
         val dialog = AlertDialog.Builder(this)
             .setTitle(R.string.ssaid_root_request_title)
-            .setMessage(R.string.ssaid_root_request_message)
-            .setView(container)
+            .setView(layout)
             .setNegativeButton(R.string.cancel, null)
             .setPositiveButton(R.string.save) { _, _ ->
                 val executable = input.text?.toString()?.trim().orEmpty()
@@ -392,7 +405,7 @@ class MainActivity : Activity() {
         val hasFiltered = filtered.isNotEmpty()
         if (!hasLoaded) {
             emptyState.visibility = View.VISIBLE
-            emptyState.setText(R.string.ssaid_list_empty)
+            emptyState.setText(R.string.ssaid_no_entries)
             container.visibility = View.GONE
         } else if (!hasFiltered) {
             emptyState.visibility = View.VISIBLE
@@ -417,33 +430,56 @@ class MainActivity : Activity() {
     }
 
     private fun openEditDialog(entry: SsaidEntry) {
-        val container = FrameLayout(this).apply {
-            val padding = (16 * resources.displayMetrics.density).toInt()
-            setPadding(padding, (8 * resources.displayMetrics.density).toInt(), padding, 0)
+        val layout = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            setPadding(20.dp, 12.dp, 20.dp, 8.dp)
         }
+
+        // Package Box
+        val pkgBox = LinearLayout(this).apply {
+            background = getDrawable(R.drawable.bg_code_box)
+            setPadding(10.dp, 6.dp, 10.dp, 6.dp)
+            val params = LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT
+            ).apply { bottomMargin = 12.dp }
+            layoutParams = params
+        }
+        val pkgText = TextView(this).apply {
+            text = entry.packageName
+            typeface = Typeface.MONOSPACE
+            setTextColor(getColor(R.color.on_surface_variant))
+            textSize = 12f
+        }
+        pkgBox.addView(pkgText)
+        layout.addView(pkgBox)
+
         val input = EditText(this).apply {
-            layoutParams = ViewGroup.LayoutParams(
+            layoutParams = LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT,
                 ViewGroup.LayoutParams.WRAP_CONTENT
             )
             setBackgroundResource(R.drawable.bg_input)
-            val pad = (12 * resources.displayMetrics.density).toInt()
-            setPadding(pad, pad, pad, pad)
+            setPadding(12.dp, 12.dp, 12.dp, 12.dp)
             hint = getString(R.string.new_ssaid_label)
             setText(entry.value)
             setSelection(text?.length ?: 0)
+            typeface = Typeface.MONOSPACE
+            setTextColor(getColor(R.color.on_surface))
+            setHintTextColor(getColor(R.color.on_surface_muted))
+            textSize = 15f
             inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD
             isSingleLine = true
         }
-        container.addView(input)
+        layout.addView(input)
 
         val dialog = AlertDialog.Builder(this)
             .setTitle(getString(R.string.edit_ssaid_title, applicationLabel(entry.packageName)))
-            .setMessage(entry.packageName)
-            .setView(container)
+            .setView(layout)
             .setNegativeButton(R.string.cancel, null)
             .setPositiveButton(R.string.save, null)
             .create()
+
         dialog.setOnShowListener {
             dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener {
                 val value = input.text?.toString()?.trim().orEmpty()
@@ -460,9 +496,38 @@ class MainActivity : Activity() {
 
     private fun openRandomDialog(entry: SsaidEntry) {
         val newValue = randomSsaid()
+        val layout = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            setPadding(20.dp, 12.dp, 20.dp, 8.dp)
+        }
+
+        val pkgText = TextView(this).apply {
+            text = entry.packageName
+            typeface = Typeface.MONOSPACE
+            setTextColor(getColor(R.color.on_surface_variant))
+            textSize = 12f
+            setPadding(0, 0, 0, 10.dp)
+        }
+        layout.addView(pkgText)
+
+        val codeBox = LinearLayout(this).apply {
+            background = getDrawable(R.drawable.bg_code_box)
+            setPadding(14.dp, 10.dp, 14.dp, 10.dp)
+            gravity = Gravity.CENTER_HORIZONTAL
+        }
+        val valueText = TextView(this).apply {
+            text = newValue
+            typeface = Typeface.MONOSPACE
+            setTextColor(getColor(R.color.primary))
+            textSize = 16f
+            setTypeface(typeface, Typeface.BOLD)
+        }
+        codeBox.addView(valueText)
+        layout.addView(codeBox)
+
         AlertDialog.Builder(this)
-            .setTitle(R.string.random_ssaid_title)
-            .setMessage(getString(R.string.random_ssaid_message, applicationLabel(entry.packageName), newValue))
+            .setTitle(getString(R.string.random_ssaid_title))
+            .setView(layout)
             .setNegativeButton(R.string.cancel, null)
             .setPositiveButton(R.string.apply_change) { _, _ -> submitSsaidChange(entry, newValue) }
             .show()
@@ -522,10 +587,9 @@ class MainActivity : Activity() {
             return
         }
 
-        val padding = (16 * resources.displayMetrics.density).toInt()
         val historyContainer = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
-            setPadding(padding, (8 * resources.displayMetrics.density).toInt(), padding, 0)
+            setPadding(16.dp, 8.dp, 16.dp, 8.dp)
         }
         val scrollView = ScrollView(this).apply {
             addView(historyContainer)
@@ -591,28 +655,88 @@ class MainActivity : Activity() {
     }
 
     private fun showSsaidRestartNotice() {
+        val layout = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            setPadding(20.dp, 8.dp, 20.dp, 8.dp)
+        }
+        val msgText = TextView(this).apply {
+            text = getString(R.string.ssaid_change_notice_message)
+            setTextColor(getColor(R.color.on_surface_variant))
+            textSize = 14f
+            setLineSpacing(3.dp.toFloat(), 1f)
+        }
+        layout.addView(msgText)
+
         AlertDialog.Builder(this)
             .setTitle(R.string.ssaid_change_notice_title)
-            .setMessage(R.string.ssaid_change_notice_message)
+            .setView(layout)
             .setNegativeButton(R.string.got_it, null)
             .setPositiveButton(R.string.reboot_now) { _, _ -> openRebootMenu() }
             .show()
     }
 
     private fun openRebootMenu() {
-        val suExecutable = activeSuExecutable ?: getSavedSuExecutable()
-        val options = arrayOf(
-            getString(R.string.reboot_soft),
-            getString(R.string.reboot_full)
-        )
-        AlertDialog.Builder(this)
-            .setTitle(R.string.reboot_menu_title)
-            .setItems(options) { _, which ->
-                val mode = if (which == 0) RebootMode.SOFT_REBOOT else RebootMode.FULL_REBOOT
-                executeReboot(mode)
+        val layout = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            setPadding(20.dp, 12.dp, 20.dp, 12.dp)
+        }
+
+        lateinit var dialog: AlertDialog
+
+        // Soft Reboot Option Card
+        val softCard = LinearLayout(this).apply {
+            background = getDrawable(R.drawable.bg_ssaid_item)
+            orientation = LinearLayout.VERTICAL
+            setPadding(14.dp, 12.dp, 14.dp, 12.dp)
+            isClickable = true
+            isFocusable = true
+            val params = LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT
+            ).apply { bottomMargin = 10.dp }
+            layoutParams = params
+            setOnClickListener {
+                dialog.dismiss()
+                executeReboot(RebootMode.SOFT_REBOOT)
             }
+        }
+        val softTitle = TextView(this).apply {
+            text = getString(R.string.reboot_soft)
+            setTextColor(getColor(R.color.primary))
+            textSize = 15f
+            typeface = Typeface.DEFAULT_BOLD
+        }
+        softCard.addView(softTitle)
+        layout.addView(softCard)
+
+        // Full Reboot Option Card
+        val fullCard = LinearLayout(this).apply {
+            background = getDrawable(R.drawable.bg_ssaid_item)
+            orientation = LinearLayout.VERTICAL
+            setPadding(14.dp, 12.dp, 14.dp, 12.dp)
+            isClickable = true
+            isFocusable = true
+            setOnClickListener {
+                dialog.dismiss()
+                executeReboot(RebootMode.FULL_REBOOT)
+            }
+        }
+        val fullTitle = TextView(this).apply {
+            text = getString(R.string.reboot_full)
+            setTextColor(getColor(R.color.on_surface))
+            textSize = 15f
+            typeface = Typeface.DEFAULT_BOLD
+        }
+        fullCard.addView(fullTitle)
+        layout.addView(fullCard)
+
+        dialog = AlertDialog.Builder(this)
+            .setTitle(R.string.reboot_menu_title)
+            .setView(layout)
             .setNegativeButton(R.string.cancel, null)
-            .show()
+            .create()
+
+        dialog.show()
     }
 
     private fun executeReboot(mode: RebootMode) {
@@ -632,9 +756,22 @@ class MainActivity : Activity() {
     private fun confirmClearData(entry: SsaidEntry) {
         val suExecutable = activeSuExecutable ?: getSavedSuExecutable()
         val appLabel = applicationLabel(entry.packageName)
+
+        val layout = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            setPadding(20.dp, 8.dp, 20.dp, 8.dp)
+        }
+        val msgText = TextView(this).apply {
+            text = getString(R.string.clear_data_message, appLabel)
+            setTextColor(getColor(R.color.on_surface_variant))
+            textSize = 14f
+            setLineSpacing(3.dp.toFloat(), 1f)
+        }
+        layout.addView(msgText)
+
         AlertDialog.Builder(this)
             .setTitle(getString(R.string.clear_data_title, appLabel))
-            .setMessage(getString(R.string.clear_data_message, appLabel))
+            .setView(layout)
             .setNegativeButton(R.string.cancel, null)
             .setPositiveButton(R.string.clear_data) { _, _ ->
                 backgroundExecutor.execute {
