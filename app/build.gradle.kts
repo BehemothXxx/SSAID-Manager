@@ -2,17 +2,15 @@ plugins {
     alias(libs.plugins.android.application)
 }
 
-fun getGitCommitCount(): Int {
-    return try {
-        val stdout = java.io.ByteArrayOutputStream()
-        project.exec {
-            commandLine("git", "rev-list", "--count", "HEAD")
-            standardOutput = stdout
-        }
-        stdout.toString().trim().toIntOrNull() ?: 1
-    } catch (_: Exception) {
-        1
-    }
+fun getGitCommitCount(): Int = try {
+    val process = ProcessBuilder("git", "rev-list", "--count", "HEAD")
+        .redirectErrorStream(true)
+        .start()
+    val count = process.inputStream.bufferedReader().readText().trim().toInt()
+    process.waitFor()
+    count
+} catch (_: Exception) {
+    1
 }
 
 android {
