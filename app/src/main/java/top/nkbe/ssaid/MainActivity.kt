@@ -74,6 +74,9 @@ class MainActivity : Activity() {
     }
 
     private fun bindActions() {
+        findViewById<ImageButton>(R.id.rebootButton).setOnClickListener {
+            openRebootMenu()
+        }
         findViewById<ImageButton>(R.id.refreshButton).setOnClickListener {
             loadBasicInformation()
             activeSuExecutable?.let { su -> loadSsaidEntries(su, showLoading = false) }
@@ -618,8 +621,43 @@ class MainActivity : Activity() {
         AlertDialog.Builder(this)
             .setTitle(R.string.ssaid_change_notice_title)
             .setMessage(R.string.ssaid_change_notice_message)
-            .setPositiveButton(R.string.got_it, null)
+            .setNegativeButton(R.string.got_it, null)
+            .setPositiveButton(R.string.reboot_now) { _, _ -> openRebootMenu() }
             .show()
+    }
+
+    private fun openRebootMenu() {
+        val suExecutable = activeSuExecutable
+        if (suExecutable == null) {
+            openRootRequestDialog()
+            return
+        }
+        val options = arrayOf(
+            getString(R.string.reboot_soft),
+            getString(R.string.reboot_full)
+        )
+        AlertDialog.Builder(this)
+            .setTitle(R.string.reboot_menu_title)
+            .setItems(options) { _, which ->
+                val mode = if (which == 0) RebootMode.SOFT_REBOOT else RebootMode.FULL_REBOOT
+                executeReboot(mode)
+            }
+            .setNegativeButton(R.string.cancel, null)
+            .show()
+    }
+
+    private fun executeReboot(mode: RebootMode) {
+        val suExecutable = activeSuExecutable ?: return
+        showMessage(getString(R.string.rebooting))
+        backgroundExecutor.execute {
+            try {
+                rootRepository.reboot(suExecutable, mode)
+            } catch (error: RootOperationException) {
+                runOnUiThread {
+                    showMessage(error.message ?: getString(R.string.root_failed))
+                }
+            }
+        }
     }
 
     private fun formatTime(timestamp: Long): String =

@@ -66,4 +66,10 @@
     <string name="filter_user">ユーザーアプリ</string>
     <string name="filter_system">システムアプリ</string>
     <string name="filter_modified">変更履歴あり</string>
+    <string name="reboot">再起動</string>
+    <string name="reboot_menu_title">端末を再起動</string>
+    <string name="reboot_soft">ソフト再起動（推奨・高速）</string>
+    <string name="reboot_full">完全再起動</string>
+    <string name="rebooting">再起動中…</string>
+    <string name="reboot_now">今すぐ再起動</string>
 </resources>

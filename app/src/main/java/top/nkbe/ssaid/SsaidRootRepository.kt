@@ -21,6 +21,11 @@ data class SsaidUpdateResult(
     val entries: List<SsaidEntry>
 )
 
+enum class RebootMode {
+    SOFT_REBOOT,
+    FULL_REBOOT
+}
+
 class RootOperationException(message: String, cause: Throwable? = null) : Exception(message, cause)
 
 /** Reads and updates the per-user SSAID settings file through a user-selected su executable. */
@@ -30,6 +35,15 @@ class SsaidRootRepository {
     private val userId = Process.myUid() / 100000
     private val settingsPath = "/data/system/users/$userId/settings_ssaid.xml"
     private val temporaryPath = "$settingsPath.codex.tmp"
+
+    fun reboot(suExecutable: String, mode: RebootMode) {
+        requireRoot(suExecutable)
+        val command = when (mode) {
+            RebootMode.SOFT_REBOOT -> "setprop ctl.restart zygote || killall system_server || pkill -f system_server"
+            RebootMode.FULL_REBOOT -> "reboot"
+        }
+        execute(suExecutable, command)
+    }
 
     fun readEntries(suExecutable: String): List<SsaidEntry> {
         requireRoot(suExecutable)

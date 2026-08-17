@@ -72,4 +72,10 @@
     <string name="filter_user">用戶應用</string>
     <string name="filter_system">系統應用</string>
     <string name="filter_modified">已修改</string>
+    <string name="reboot">重啟</string>
+    <string name="reboot_menu_title">重啟裝置</string>
+    <string name="reboot_soft">快速軟重啟（推薦，5秒生效）</string>
+    <string name="reboot_full">完整重新開機</string>
+    <string name="rebooting">正在重新開機…</string>
+    <string name="reboot_now">立即重啟</string>
 </resources>
