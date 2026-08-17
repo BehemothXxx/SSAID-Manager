@@ -408,6 +408,9 @@ class MainActivity : Activity() {
             row.findViewById<Button>(R.id.historySsaidButton).setOnClickListener {
                 showHistory(entry)
             }
+            row.findViewById<Button>(R.id.clearDataButton).setOnClickListener {
+                confirmClearData(entry)
+            }
             container.addView(row)
         }
 
@@ -658,6 +661,34 @@ class MainActivity : Activity() {
                 }
             }
         }
+    }
+
+    private fun confirmClearData(entry: SsaidEntry) {
+        val suExecutable = activeSuExecutable
+        if (suExecutable == null) {
+            openRootRequestDialog()
+            return
+        }
+        val appLabel = applicationLabel(entry.packageName)
+        AlertDialog.Builder(this)
+            .setTitle(getString(R.string.clear_data_title, appLabel))
+            .setMessage(getString(R.string.clear_data_message, appLabel))
+            .setNegativeButton(R.string.cancel, null)
+            .setPositiveButton(R.string.clear_data) { _, _ ->
+                backgroundExecutor.execute {
+                    try {
+                        rootRepository.clearAppData(suExecutable, entry.packageName)
+                        runOnUiThread {
+                            showMessage(getString(R.string.clear_data_success, appLabel))
+                        }
+                    } catch (error: RootOperationException) {
+                        runOnUiThread {
+                            showMessage(error.message ?: getString(R.string.clear_data_failed, appLabel))
+                        }
+                    }
+                }
+            }
+            .show()
     }
 
     private fun formatTime(timestamp: Long): String =

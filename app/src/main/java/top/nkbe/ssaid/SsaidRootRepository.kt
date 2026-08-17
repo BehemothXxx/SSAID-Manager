@@ -45,6 +45,19 @@ class SsaidRootRepository {
         execute(suExecutable, command)
     }
 
+    fun clearAppData(suExecutable: String, packageName: String) {
+        requireRoot(suExecutable)
+        val result = execute(suExecutable, "pm clear ${shellQuote(packageName)}")
+        if (result.exitCode != 0) {
+            throw RootOperationException("清除应用数据失败: ${outputDetail(result.output)}")
+        }
+    }
+
+    fun forceStopApp(suExecutable: String, packageName: String) {
+        requireRoot(suExecutable)
+        execute(suExecutable, "am force-stop ${shellQuote(packageName)}")
+    }
+
     fun readEntries(suExecutable: String): List<SsaidEntry> {
         requireRoot(suExecutable)
         return readFile(suExecutable)

@@ -72,4 +72,9 @@
     <string name="reboot_full">完全再起動</string>
     <string name="rebooting">再起動中…</string>
     <string name="reboot_now">今すぐ再起動</string>
+    <string name="clear_data">消去</string>
+    <string name="clear_data_title">%1$s のデータを消去</string>
+    <string name="clear_data_message">%1$s のすべてのデータを消去しますか？\nアプリは初期状態にリセットされます。</string>
+    <string name="clear_data_success">%1$s のデータを消去しました</string>
+    <string name="clear_data_failed">%1$s のデータ消去に失敗しました</string>
 </resources>

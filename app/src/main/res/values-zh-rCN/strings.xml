@@ -78,4 +78,9 @@
     <string name="reboot_full">完整重启系统</string>
     <string name="rebooting">正在重启…</string>
     <string name="reboot_now">立即重启</string>
+    <string name="clear_data">清除</string>
+    <string name="clear_data_title">清除 %1$s 的数据</string>
+    <string name="clear_data_message">确定要清除 %1$s 的所有数据吗？\n该应用将被重置为初始安装状态。</string>
+    <string name="clear_data_success">已清除 %1$s 的数据</string>
+    <string name="clear_data_failed">清除 %1$s 数据失败</string>
 </resources>

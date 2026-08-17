@@ -72,4 +72,9 @@
     <string name="reboot_full">Full Reboot</string>
     <string name="rebooting">Rebooting…</string>
     <string name="reboot_now">Reboot Now</string>
+    <string name="clear_data">Clear</string>
+    <string name="clear_data_title">Clear Data for %1$s</string>
+    <string name="clear_data_message">Are you sure you want to clear all data and cache for %1$s?\nThe app will be reset to fresh install state.</string>
+    <string name="clear_data_success">Data cleared for %1$s</string>
+    <string name="clear_data_failed">Failed to clear data for %1$s</string>
 </resources>

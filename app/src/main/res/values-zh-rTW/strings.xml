@@ -78,4 +78,9 @@
     <string name="reboot_full">完整重新開機</string>
     <string name="rebooting">正在重新開機…</string>
     <string name="reboot_now">立即重啟</string>
+    <string name="clear_data">清除</string>
+    <string name="clear_data_title">清除 %1$s 的資料</string>
+    <string name="clear_data_message">確定要清除 %1$s 的所有資料嗎？\n該應用程式將被重設為初始安裝狀態。</string>
+    <string name="clear_data_success">已清除 %1$s 的資料</string>
+    <string name="clear_data_failed">清除 %1$s 資料失敗</string>
 </resources>
