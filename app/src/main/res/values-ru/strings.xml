@@ -1,0 +1,79 @@
+<resources>
+    <string name="app_name">SSAID Manager</string>
+    <string name="apply_change">Применить</string>
+    <string name="apps_count">%1$d приложений</string>
+    <string name="cancel">Отмена</string>
+    <string name="clear_data">Очистить</string>
+    <string name="clear_data_failed">Не удалось очистить данные для %1$s</string>
+    <string name="clear_data_message">"Вы действительно хотите очистить все данные и кэш для %1$s?
+Приложение будет сброшено до состояния чистой установки."</string>
+    <string name="clear_data_success">Данные для %1$s очищены</string>
+    <string name="clear_data_title">Очистка данных %1$s</string>
+    <string name="close">Закрыть</string>
+    <string name="copied">Скопировано: %1$s</string>
+    <string name="copy">Копировать</string>
+    <string name="copy_current_ssaid">Копировать SSAID текущего приложения</string>
+    <string name="copy_device_info">Копировать информацию об окружении</string>
+    <string name="device_info_format">"Производитель: %1$s
+Бренд: %2$s
+Модель: %3$s
+ОС: Android %4$s (API %5$d)
+Fingerprint: %6$s"</string>
+    <string name="device_info_label">Окружение устройства</string>
+    <string name="edit_ssaid">Изменить</string>
+    <string name="edit_ssaid_title">Изменение SSAID для %1$s</string>
+    <string name="filter_all">Все</string>
+    <string name="filter_modified">Измененные</string>
+    <string name="filter_system">Системные</string>
+    <string name="filter_user">Пользовательские</string>
+    <string name="got_it">Понятно</string>
+    <string name="history">История</string>
+    <string name="history_title">История для %1$s</string>
+    <string name="invalid_ssaid">Введите 16 шестнадцатеричных символов</string>
+    <string name="new_ssaid_label">Новый SSAID</string>
+    <string name="no_matching_apps">Приложения не найдены</string>
+    <string name="nothing_to_copy">Нечего копировать</string>
+    <string name="open_github">Открыть репозиторий GitHub</string>
+    <string name="open_github_failed">Не удалось открыть ссылку на GitHub</string>
+    <string name="query_modify_ssaid">Запрос и изменение SSAID</string>
+    <string name="random_ssaid">Случайный</string>
+    <string name="random_ssaid_title">Случайный SSAID</string>
+    <string name="reboot">Перезагрузка</string>
+    <string name="reboot_full">Полная перезагрузка</string>
+    <string name="reboot_menu_title">Перезагрузка устройства</string>
+    <string name="reboot_now">Перезагрузить сейчас</string>
+    <string name="reboot_soft">Мягкая перезагрузка (быстрая)</string>
+    <string name="rebooting">Перезагрузка…</string>
+    <string name="refresh">Обновить</string>
+    <string name="refresh_ssaid">Обновить список SSAID</string>
+    <string name="restore">Восстановить</string>
+    <string name="restore_old_value">Восстановить</string>
+    <string name="restore_ssaid_message">"Восстановить SSAID до:
+%1$s
+
+Продолжить?"</string>
+    <string name="restore_ssaid_title">Восстановление SSAID</string>
+    <string name="root_failed">Ошибка выполнения Root-операции</string>
+    <string name="root_permission_denied">Отказано в правах Root. Предоставьте разрешение в KernelSU / Magisk / APatch.</string>
+    <string name="save">Сохранить</string>
+    <string name="search_hint">Поиск приложения или пакета…</string>
+    <string name="ssaid_change_failed">Не удалось изменить SSAID</string>
+    <string name="ssaid_change_notice_message">Для применения нового SSAID требуется перезагрузка устройства. Также рекомендуется очистить данные целевого приложения перед его повторным открытием.</string>
+    <string name="ssaid_change_notice_title">SSAID изменен</string>
+    <string name="ssaid_changed">SSAID приложения %1$s изменен на %2$s</string>
+    <string name="ssaid_current_label">Текущий SSAID Manager</string>
+    <string name="ssaid_history_empty">История изменений для этого приложения пуста</string>
+    <string name="ssaid_list_empty">Нажмите «Запрос и изменение SSAID», чтобы запросить Root и загрузить приложения.</string>
+    <string name="ssaid_loading">Чтение SSAID…</string>
+    <string name="ssaid_no_entries">В файле SSAID не найдено приложений.</string>
+    <string name="ssaid_root_hint">Для чтения SSAID других приложений необходим Root-доступ.</string>
+    <string name="ssaid_root_request_message">Для чтения файла SSAID текущего пользователя будет использован su. Подтвердите запрос авторизации и при необходимости скорректируйте имя или путь к исполняемому файлу su.</string>
+    <string name="ssaid_root_request_title">Запрос Root-доступа</string>
+    <string name="ssaid_saving">Сохранение SSAID…</string>
+    <string name="ssaid_unchanged">Новый SSAID совпадает с текущим значением</string>
+    <string name="status_authorized">Root подключен</string>
+    <string name="su_executable_label">Имя или путь к бинарнику su</string>
+    <string name="subtitle">Окружение устройства и SSAID</string>
+    <string name="unavailable">Недоступно</string>
+</resources>
+
