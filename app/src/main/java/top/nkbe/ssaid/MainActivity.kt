@@ -53,8 +53,9 @@ class MainActivity : Activity() {
     private val operationRunning = AtomicBoolean(false)
     private var activeSuExecutable: String? = null
     private var loadedEntries: List<SsaidEntry> = emptyList()
-    private var currentFilterQuery: String = ""
+        private var currentFilterQuery: String = ""
     private var currentFilterType: AppFilter = AppFilter.ALL
+    private var sortByDate: Boolean = false // Переменная для сортировки
 
     private val Int.dp: Int
         get() = (this * resources.displayMetrics.density).toInt()
@@ -63,6 +64,12 @@ class MainActivity : Activity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
+        // Загружаем сохраненный фильтр и сортировку
+        val prefs = getSharedPreferences(PREFERENCES_NAME, Context.MODE_PRIVATE)
+        val savedFilter = prefs.getString("saved_filter", AppFilter.ALL.name) ?: AppFilter.ALL.name
+        currentFilterType = try { AppFilter.valueOf(savedFilter) } catch (e: Exception) { AppFilter.ALL }
+        sortByDate = prefs.getBoolean("sort_by_date", false)
+        
         rootRepository = SsaidRootRepository()
         historyStore = SsaidHistoryStore(this)
 
@@ -132,9 +139,14 @@ class MainActivity : Activity() {
         }
     }
 
-    private fun setAppFilter(filter: AppFilter) {
+        private fun setAppFilter(filter: AppFilter) {
         if (currentFilterType == filter) return
         currentFilterType = filter
+        
+        // Сохраняем выбранный фильтр в память
+        getSharedPreferences(PREFERENCES_NAME, Context.MODE_PRIVATE)
+            .edit().putString("saved_filter", filter.name).apply()
+            
         updateFilterChipsUi()
         applyFilterAndRender()
     }
